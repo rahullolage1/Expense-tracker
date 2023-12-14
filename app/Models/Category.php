@@ -39,7 +39,7 @@ class Category extends Model
 
     public function category_list($request, $user_id){
         $list = DB::table('category as c')
-                    ->where('c.created_by', $user_id);
+                    ->where('c.created_by', $user_id); 
                 
                
         if($request->sort == 'name_desc'){  
