@@ -35,7 +35,7 @@ Route::group([
     Route::get('/user-profile', [AuthController::class, 'userProfile']);
 
 });
-    
+
 Route::group([
     'middleware' => 'api',
 ], function ($router) {
@@ -43,13 +43,17 @@ Route::group([
     // -----------   Category Route ------------- //
 
     Route::post('/add-category', [CategoryController::class, 'createCategory']);
-    Route::post('/category-list', [CategoryController::class, 'listCategory']);
+    Route::get('/category-list', [CategoryController::class, 'listCategory']);
 
     // -----------   Expenses Route ------------- //
 
     Route::post('/create-expense', [ExpenseController::class, 'createExpense']);
+    Route::get('/expense-list', [ExpenseController::class, 'listExpenses']);
     Route::get('/get-expense/{id}', [ExpenseController::class, 'getExpense']);
     Route::post('/update-expense/{id}', [ExpenseController::class, 'updateExpense']);
     Route::post('/delete-expense/{id}', [ExpenseController::class, 'delete']);
+    Route::get('/get-data-expense', [ExpenseController::class, 'getExpenseData']);
+    Route::get('/download-csv', [ExpenseController::class, 'downloadExpenseReportCsv']);
+    Route::get('/mail-csv', [ExpenseController::class, 'mailExpenseReportCsv']);
 
 });

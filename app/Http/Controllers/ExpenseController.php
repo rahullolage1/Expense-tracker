@@ -9,6 +9,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use Tymon\JWTAuth\Facades\JWTAuth;
+use App\Exports\ExpenseExport;
+use Maatwebsite\Excel\Facades\Excel;
+use Maatwebsite\Excel\Excel as BaseExcel;
 
 class ExpenseController extends Controller
 {
@@ -99,4 +102,93 @@ class ExpenseController extends Controller
         }
 
     }
+
+    public function listExpenses(){
+        
+        $user_id = auth()->user()->id;
+        
+        $result = new Expense();
+        $response = $result->expense_list($user_id);
+        // dd($response);
+            return response()->json([
+                'status' => 'success',
+                'response' => $response,
+                'status_code' => 200
+            ], 200);
+    }
+
+    public function getExpenseData(Request $request){
+        
+        $start_date = $request->input('start_date');
+        $end_date = $request->input('end_date');
+        
+        $user_id = auth()->user()->id;
+    
+        $data = new Expense();
+        $result = $data->getData($start_date,$end_date,$user_id);
+        
+        if ($result) {
+            return response()->json([$result]);
+        } else {
+            return response()->json([
+                'status' => 'failed',
+                'response' => 'Record not found',
+                'status_code' => 404
+            ], 404);
+        }
+        
+
+    }
+
+    public function downloadExpenseReportCsv(Request $request){
+
+        $start_date = $request->input('start_date');
+        $end_date = $request->input('end_date');
+        $user_id = auth()->user()->id;
+
+        $data = new Expense();
+        $result = $data->getData($start_date,$end_date,$user_id);
+        
+        return Excel::download(new ExpenseExport($result), 'expenses.xlsx');
+        
+    }
+
+    
+    public function mailExpenseReportCsv(Request $request){
+
+        $start_date = $request->input('start_date');
+        $end_date = $request->input('end_date');
+        $user_id = auth()->user()->id;
+        $email = auth()->user()->email;
+
+        $data = new Expense();
+        $result = $data->getData($start_date,$end_date,$user_id);
+
+        $attachment = Excel::raw(
+            new ExpenseExport($result), 
+            BaseExcel::CSV
+        );
+
+        $subject = "Expense Report";
+
+            \Mail::send([], [], function($message) use ($attachment,$subject,$email) {
+
+                $message->to($email)
+                        ->subject($subject)
+                        ->from('rahullp.28@gmail.com', 'Rahul')
+                        ->attachData($attachment, 'expenses.csv')
+                        ->html('Please find the attachment');
+
+            });
+
+            return response()->json([
+                'status'=> 'success',
+                'response'=>'Mail sent successfully',
+                'status_code'=> 200
+    
+            ]);
+        
+    }
+
+
 }

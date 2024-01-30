@@ -12,11 +12,16 @@ class Category extends Model
 {
     use HasFactory;
 
+    protected $fillable = [
+        'name',
+        'isActive',
+        'created_by',
+    ];
+
     protected $table = "category";
 
     public function addCategory($input, $user_id){
-        // dd($input['isActive']);
-        // dd($user_id);
+        
         $validator = validator::make($input, [
             "name"=> "required|string|unique:category|max:100",
         ]);
@@ -25,37 +30,28 @@ class Category extends Model
             return response()->json($validator->errors(),400);
         }
 
-        $data = DB::table('category')
-                    ->insert([
+        $data = Category::create([
                         "name" => $input["name"],
                         "isActive" => $input["isActive"],
                         'created_by' => $user_id,
-                    ]);
-
+        ]);
+        
         return 'category created';
         
     }
 
 
-    public function category_list($request, $user_id){
-        $list = DB::table('category as c')
-                    ->where('c.created_by', $user_id); 
+    public function category_list($user_id){
                 
-               
-        if($request->sort == 'name_desc'){  
-            $list->orderBy('c.name','desc');
-        }
+        $list = Category::where([
+            'created_by' => $user_id,
+            'isActive' => '1',
+        ])->limit(10)
+          ->latest()
+          ->get();
 
-        if($request->sort == 'name_asc'){  
-            $list->orderBy('c.name','asc');
-        }
+        $data = $list->toArray();
 
-        $data = $list
-                ->limit(20)
-                ->orderBy('c.name','asc')
-                ->get();
-
-        // dd($data);
         return $data;
     }
 

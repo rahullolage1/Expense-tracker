@@ -34,12 +34,12 @@ class CategoryController extends Controller
     }
 
 
-    public function listCategory(Request $request){
+    public function listCategory(){
         
         $user_id = auth()->user()->id;
         
         $result = new Category();
-        $response = $result->category_list($request, $user_id);
+        $response = $result->category_list($user_id);
         // dd($response);
             return response()->json([
                 'status' => 'success',

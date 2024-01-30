@@ -79,12 +79,53 @@ class Expense extends Model
 
     }
 
+    public function expense_list($user_id)
+    {
+        
+            $list = Expense::where([
+                'user_id' => $user_id,
+            ])->latest()
+            ->get();
+    
+            $data = $list->toArray();
+    
+            return $data;
+
+    }
+
     public function deleteData($id)
     {
         $destroyData = Expense::where('id', $id)->delete();
 
         return $destroyData;
 
+    }
+
+
+    public function getData($start_date,$end_date,$user_id)
+    {
+        
+        $data = DB::table('expenses as e')
+                ->leftjoin('category as c', 'e.category_id', '=', 'c.id')
+                ->where('e.user_id', $user_id)
+                ->select('e.amount', 'c.name as category', 'e.expense_date', 'e.remark');
+                
+        $data->where(function ($query) use ($start_date,$end_date) {
+            if( $start_date != 'null' )
+                {
+                    $start_date = $start_date. " 00:00:00";
+                    $query->where('expense_date', '>=', $start_date);
+                }
+            if( $end_date != 'null' )
+                {
+                    $end_date = $end_date. " 23:59:59";
+                    $query->where('expense_date', '<=', $end_date);
+                }
+        });
+
+        $result=$data->orderBy('expense_date','asc')->get();
+        // dd($result);
+        return $result;
     }
 
 }
